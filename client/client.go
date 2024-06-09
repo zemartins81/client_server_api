@@ -20,13 +20,17 @@ const CreateTable = `CREATE TABLE IF NOT EXISTS cotacoes (
 
 func main() {
 
+	ctxAPI, cancelAPI := context.WithTimeout(context.Background(), 300*time.Millisecond)
+
+	defer cancelAPI()
+
 	apiURL := "http://localhost:8080/cotacao"
 
 	cl := http.Client{}
 
-	req, err := http.NewRequest("GET", apiURL, nil)
+	req, err := http.NewRequestWithContext(ctxAPI, "GET", apiURL, nil)
 	if err != nil {
-		log.Printf("erro ao montar a requisição: %v", err)
+		log.Printf("erro ao criar a requisição: %v\n", err)
 		return
 	}
 

@@ -51,11 +51,11 @@ Os requisitos para cumprir este desafio são:
 
 ### Server
 
-O `server.go` faz uma chamada à API de câmbio, registra a cotação no banco de dados SQLite e responde ao cliente com a cotação atual.
+O `server.go` faz uma chamada à API de câmbio e responde ao cliente com a cotação atual.
 
 ### Client
 
-O `client.go` faz uma requisição ao `server.go`, recebe o valor do câmbio e salva em um arquivo de texto.
+O `client.go` faz uma requisição ao `server.go`, recebe o valor do câmbio, salva em um arquivo de texto e registra a cotação no banco de dados SQLite.
 
 ## Observações
 
