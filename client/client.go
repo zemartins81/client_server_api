@@ -2,21 +2,13 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
-	_ "github.com/mattn/go-sqlite3"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"time"
 )
-
-const CreateTable = `CREATE TABLE IF NOT EXISTS cotacoes (
-	"id" INTEGER PRIMARY KEY AUTOINCREMENT,
-	"data" TEXT,
-	"valor" TEXT
-);`
 
 func main() {
 
@@ -57,33 +49,11 @@ func main() {
 
 	message := fmt.Sprintf("Dolar: %s", body)
 
+	fmt.Println(message)
+
 	_, err = file.Write([]byte(message))
 	if err != nil {
 		log.Printf("erro ao escrever no arquivo: %v", err)
-		return
-	}
-
-	ctxDB, cancelDB := context.WithTimeout(context.Background(), 10*time.Millisecond)
-	defer cancelDB()
-
-	db, err := sql.Open("sqlite3", "./cotacoes.db")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-
-	_, err = db.Exec(CreateTable)
-	if err != nil {
-		log.Printf("erro ao criar a tabela cotacoes: %v", err)
-		return
-	}
-
-	data := time.Now().Format("2006-01-02 15:04:05")
-
-	insertSQL := `INSERT INTO cotacoes (data, valor) VALUES (?, ?)`
-	_, err = db.ExecContext(ctxDB, insertSQL, data, message)
-	if err != nil {
-		log.Printf("erro ao executar a query: %v", err)
 		return
 	}
 

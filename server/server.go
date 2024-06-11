@@ -8,7 +8,17 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"database/sql"
+
+	_ "github.com/mattn/go-sqlite3"
 )
+
+const CreateTable = `CREATE TABLE IF NOT EXISTS cotacoes (
+	"id" INTEGER PRIMARY KEY AUTOINCREMENT,
+	"data" TEXT,
+	"valor" TEXT
+);`
 
 type USDBRL struct {
 	BID string `json:"bid"`
@@ -64,7 +74,8 @@ func Cotacao(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	fmt.Println(cotacaoResponse.USDBRL.BID)
+	message := "R$ " + cotacaoResponse.USDBRL.BID
+
 	cotacaoBytes, err := json.Marshal(cotacaoResponse.USDBRL.BID)
 	if err != nil {
 		log.Printf("erro ao serializar os dados: %v\n", err)
@@ -72,6 +83,31 @@ func Cotacao(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println(message)
+
+	ctxDB, cancelDB := context.WithTimeout(context.Background(), 10*time.Millisecond)
+	defer cancelDB()
+
+	db, err := sql.Open("sqlite3", "./cotacoes.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	_, err = db.Exec(CreateTable)
+	if err != nil {
+		log.Printf("erro ao criar a tabela cotacoes: %v", err)
+		return
+	}
+
+	data := time.Now().Format("2006-01-02 15:04:05")
+
+	insertSQL := `INSERT INTO cotacoes (data, valor) VALUES (?, ?)`
+	_, err = db.ExecContext(ctxDB, insertSQL, data, message)
+	if err != nil {
+		log.Printf("erro ao executar a query: %v", err)
+		return
+	}
 	w.WriteHeader(http.StatusOK)
 	w.Write(cotacaoBytes)
 }
